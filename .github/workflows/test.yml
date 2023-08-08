@@ -1,0 +1,29 @@
+name: Test
+on: []
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  semver-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - uses: actions/checkout@v3
+        with:
+          repository: zckv/semantic-versioning-example
+          path: ./pyproject/
+          fetch-depth: 0
+          ref: revert_to_7.X
+      - uses: actions/checkout@v3
+        with:
+          path: ./pyaction/
+      # Test the action with no enabled steps.
+      - name: Test Action
+        uses: ./pyaction/
+        with:
+          path: ./pyproject/
+          base: revert_to_7.X

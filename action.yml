@@ -1,0 +1,141 @@
+name: 'Semantic Release'
+description: 'Use python semantic release 7 in a composite action. The result is pushed in a pull request, for repositories where the main branch is protected.'
+author: 'Zackarie Vinckier <zackarie.vinckier--coffinier@eviden.com>'
+
+inputs:
+  # Python Project Configuration is expected to be in a pyproject.toml
+  token:
+    description: 'GITHUB_TOKEN or a `repo` scoped Personal Access Token (PAT)'
+    default: ${{ github.token }}
+  path:
+    description: >
+      Relative path under $GITHUB_WORKSPACE to the repository.
+      Defaults to $GITHUB_WORKSPACE.
+  add-paths:
+    description: >
+      A comma or newline-separated list of file paths to commit.
+      Paths should follow git's pathspec syntax.
+      Defaults to adding all new and modified files.
+  commit-message:
+    description: 'The message to use when committing changes.'
+    default: '[create-pull-request] automated change'
+  committer:
+    description: >
+      The committer name and email address in the format `Display Name <email@address.com>`.
+      Defaults to the GitHub Actions bot user.
+    default: 'GitHub <noreply@github.com>'
+  author:
+    description: >
+      The author name and email address in the format `Display Name <email@address.com>`.
+      Defaults to the user who triggered the workflow run.
+    default: '${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>'
+  signoff:
+    description: 'Add `Signed-off-by` line by the committer at the end of the commit log message.'
+    default: false
+  branch:
+    description: 'The pull request branch name.'
+    default: 'create-pull-request/patch'
+  delete-branch:
+    description: >
+      Delete the `branch` when closing pull requests, and when undeleted after merging.
+      Recommend `true`.
+    default: false
+  branch-suffix:
+    description: 'The branch suffix type when using the alternative branching strategy.'
+  base:
+    description: >
+      The pull request base branch.
+      Defaults to the branch checked out in the workflow.
+  push-to-fork:
+    description: >
+      A fork of the checked out parent repository to which the pull request branch will be pushed.
+      e.g. `owner/repo-fork`.
+      The pull request will be created to merge the fork's branch into the parent's base.
+  title:
+    description: 'The title of the pull request.'
+    default: 'Changes by create-pull-request action'
+  body:
+    description: 'The body of the pull request.'
+    default: 'Automated changes by [create-pull-request](https://github.com/peter-evans/create-pull-request) GitHub action'
+  body-path:
+    description: 'The path to a file containing the pull request body. Takes precedence over `body`.'
+  labels:
+    description: 'A comma or newline separated list of labels.'
+  assignees:
+    description: 'A comma or newline separated list of assignees (GitHub usernames).'
+  reviewers:
+    description: 'A comma or newline separated list of reviewers (GitHub usernames) to request a review from.'
+  team-reviewers:
+    description: >
+      A comma or newline separated list of GitHub teams to request a review from.
+      Note that a `repo` scoped Personal Access Token (PAT) may be required.
+  milestone:
+    description: 'The number of the milestone to associate the pull request with.'
+  draft:
+    description: 'Create a draft pull request. It is not possible to change draft status after creation except through the web interface'
+    default: false
+runs:
+  using: "composite"
+  steps:
+    - name: Install semantic versionning
+      shell: bash
+      run: |
+        # The old 7.X version is needed
+        python -m pip install python-semantic-release==7.34.6
+    - name: Use semver for commit
+      id: semver
+      shell: bash
+      env:
+        WPATH: ${{ inputs.path }}
+        AUTHOR: ${{ inputs.committer }}
+        GITHUB_WORKSPACE: ${{ github.workspace }}
+        BRANCH: ${{ inputs.base }}
+      run: |
+        export WPATH=${WPATH:=$GITHUB_WORKSPACE}
+        cd "$WPATH"
+        git switch $BRANCH
+        git config user.name $(echo $AUTHOR | cut -d ' ' -f1)
+        git config user.email $(echo $AUTHOR | cut -d ' ' -f2)
+        echo "old_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        semantic-release version -v DEBUG
+        echo "new_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        echo "msg=$(echo '"'$(git log -1 --pretty=%B)'"')" >> "$GITHUB_OUTPUT"
+    - name: Reset HEAD
+      shell: bash
+      if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
+      env:
+        OLD_SHA: ${{ steps.semver.outputs.old_sha }}
+        WPATH: ${{ inputs.path }}
+      run: |
+        export WPATH=${WPATH:=$GITHUB_WORKSPACE}
+        cd "$WPATH"
+        git reset $OLD_SHA
+    - uses: peter-evans/create-pull-request@v5
+      if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
+      with:
+        token: ${{ inputs.token }}
+        path: ${{ inputs.path }}
+        add-paths: ${{ inputs.add-path }}
+        commit-message: ${{ steps.semver.outputs.msg }}
+        committer: ${{ inputs.committer }}
+        author: ${{ inputs.author }}
+        signoff: ${{ inputs.signoff }}
+        branch: ${{ inputs.branch }}
+        delete-branch: ${{ inputs.delete-branch }}
+        branch-suffix: ${{ inputs.branch-suffix }}
+        base: ${{ inputs.base }}
+        push-to-fork: ${{ inputs.push-to-fork }}
+        title: ${{ inputs.title }} 
+        body: ${{ inputs.body }}
+        body-path: ${{ inputs.body-path }}
+        labels: ${{ inputs.labels }}
+        assignees: ${{ inputs.assignees }}
+        reviewers: ${{ inputs.reviewers }}
+        team-reviewers: ${{ inputs.team-reviewers }}
+        milestone: ${{ inputs.milestone }}
+        draft: ${{ inputs.draft }}
+
+# Ref: https://haya14busa.github.io/github-action-brandings/
+branding:
+  icon: 'check-circle'
+  color: 'green'
