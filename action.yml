@@ -89,7 +89,7 @@ runs:
         AUTHOR: ${{ inputs.committer }}
         BRANCH: ${{ inputs.branch }}
       run: |
-        export PATH=${$PATH:=$GITHUB_WORKSPACE}
+        export PATH=${PATH:=$GITHUB_WORKSPACE}
         cd $PATH
         git checkout -b $BRANCH
         semantic-release version -v DEBUG
