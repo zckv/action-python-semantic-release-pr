@@ -93,7 +93,6 @@ runs:
       run: |
         export WPATH=${WPATH:=$GITHUB_WORKSPACE}
         cd "$WPATH"
-        git switch $BRANCH
         git config user.name $(echo $AUTHOR | cut -d ' ' -f1)
         git config user.email $(echo $AUTHOR | cut -d ' ' -f2)
         echo "old_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
