@@ -85,12 +85,13 @@ runs:
     - name: Use semver for commit
       shell: bash
       env:
-        PATH: ${{ inputs.path }}
+        WPATH: ${{ inputs.path }}
+        GITHUB_WORKSPACE: ${{ github.workspace }}
         AUTHOR: ${{ inputs.committer }}
         BRANCH: ${{ inputs.branch }}
       run: |
-        export PATH=${PATH:=$GITHUB_WORKSPACE}
-        cd $PATH
+        export WPATH=${WPATH:=$GITHUB_WORKSPACE}
+        cd $WPATH
         git checkout -b $BRANCH
         semantic-release version -v DEBUG
         git commit --amend --author $AUTHOR   
