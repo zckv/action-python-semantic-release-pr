@@ -107,9 +107,8 @@ runs:
       run: |
         echo $OLD
         echo $NEW
-
     - uses: peter-evans/create-pull-request@v5
-      if: False && ${{ steps.semver.outputs.old_sha }} != ${{ steps.semver.outputs.new_sha }} 
+      if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }} 
       with:
         token: ${{ inputs.token }}
         path: ${{ inputs.path }}
