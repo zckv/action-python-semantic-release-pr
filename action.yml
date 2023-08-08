@@ -89,7 +89,7 @@ runs:
         WPATH: ${{ inputs.path }}
         AUTHOR: ${{ inputs.committer }}
         GITHUB_WORKSPACE: ${{ github.workspace }}
-        BRANCH: ${{ inputs.branch }}
+        BRANCH: ${{ inputs.base }}
       run: |
         export WPATH=${WPATH:=$GITHUB_WORKSPACE}
         cd "$WPATH"
@@ -104,18 +104,19 @@ runs:
       shell: bash
       if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
       env:
+        OLD_SHA: ${{ steps.semver.outputs.old_sha }}
         WPATH: ${{ inputs.path }}
       run: |
         export WPATH=${WPATH:=$GITHUB_WORKSPACE}
         cd "$WPATH"
-        git reset HEAD^
+        git reset $OLD_SHA
     - uses: peter-evans/create-pull-request@v5
       if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
       with:
         token: ${{ inputs.token }}
         path: ${{ inputs.path }}
         add-paths: ${{ inputs.add-path }}
-        # commit-message: ${{ inputs.commit-message }}
+        commit-message: ${{ steps.semver.outputs.msg }}
         committer: ${{ inputs.committer }}
         author: ${{ inputs.author }}
         signoff: ${{ inputs.signoff }}
