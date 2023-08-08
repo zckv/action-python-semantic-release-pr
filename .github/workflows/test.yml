@@ -16,13 +16,13 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: 3.8
-    - uses: actions/checkout@v3
-        with: 
+      - uses: actions/checkout@v3
+        with:
           repository: zckv/semantic-versioning-example
           path: ./pyproject/
           ref: master
       - uses: actions/checkout@v3
-        with: 
+        with:
           path: ./pyaction/
       - uses: actions/checkout@v3
       # Test the action with no enabled steps.
