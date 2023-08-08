@@ -99,8 +99,18 @@ runs:
         echo "old_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         semantic-release version -v DEBUG
         echo "new_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        echo "msg=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
+    - name: Reset HEAD
+      shell: bash
+      if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
+      with:
+        WPATH: ${{ inputs.path }}
+      run: |
+        export WPATH=${WPATH:=$GITHUB_WORKSPACE}
+        cd "$WPATH"
+        git reset HEAD^
     - uses: peter-evans/create-pull-request@v5
-      if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }} 
+      if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
       with:
         token: ${{ inputs.token }}
         path: ${{ inputs.path }}
