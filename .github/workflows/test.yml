@@ -24,7 +24,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: ./pyaction/
-      - uses: actions/checkout@v3
       # Test the action with no enabled steps.
       - name: Test Action
         uses: ./pyaction/
