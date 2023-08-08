@@ -20,6 +20,7 @@ jobs:
         with:
           repository: zckv/semantic-versioning-example
           path: ./pyproject/
+          fetch-depth: 0
           ref: revert_to_7.X
       - uses: actions/checkout@v3
         with:
