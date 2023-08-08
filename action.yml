@@ -99,14 +99,6 @@ runs:
         echo "old_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         semantic-release version -v DEBUG
         echo "new_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-    - name: debug
-      shell: bash
-      env:
-        OLD: ${{ steps.semver.outputs.old_sha }}
-        NEW: ${{ steps.semver.outputs.new_sha }} 
-      run: |
-        echo $OLD
-        echo $NEW
     - uses: peter-evans/create-pull-request@v5
       if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }} 
       with:
