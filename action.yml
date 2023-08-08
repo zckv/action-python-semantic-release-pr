@@ -87,6 +87,7 @@ runs:
       shell: bash
       env:
         WPATH: ${{ inputs.path }}
+        AUTHOR: ${{ inputs.committer }}
         GITHUB_WORKSPACE: ${{ github.workspace }}
         BRANCH: ${{ inputs.branch }}
       run: |
@@ -94,17 +95,10 @@ runs:
         echo "old_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         cd "$WPATH"
         git checkout -b $BRANCH
+        git config user.name $(echo $AUTHOR | cut -d ' ' -f1)
+        git config user.email $(echo $AUTHOR | cut -d ' ' -f2)
         semantic-release version -v DEBUG
         echo "new_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-    - name: Change author name
-      shell: bash
-      if: ${{ steps.semver.outputs.old_sha }} != ${{ steps.semver.outputs.new_sha }} 
-      env:
-        WPATH: ${{ inputs.path }}
-        AUTHOR: ${{ inputs.committer }}
-      run: |
-        cd "$WPATH"
-        git commit --amend --author "$AUTHOR"
     - uses: peter-evans/create-pull-request@v5
       if: ${{ steps.semver.outputs.old_sha }} != ${{ steps.semver.outputs.new_sha }} 
       with:
