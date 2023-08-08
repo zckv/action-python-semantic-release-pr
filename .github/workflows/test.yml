@@ -28,4 +28,5 @@ jobs:
       - name: Test Action
         uses: ./pyaction/
         with:
+          path: ./pyproject/
           base: master
