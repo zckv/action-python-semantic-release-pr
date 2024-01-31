@@ -109,7 +109,7 @@ runs:
         export WPATH=${WPATH:=$GITHUB_WORKSPACE}
         cd "$WPATH"
         git reset $OLD_SHA
-    - uses: peter-evans/create-pull-request@v5
+    - uses: peter-evans/create-pull-request@v6
       if: ${{ steps.semver.outputs.old_sha != steps.semver.outputs.new_sha }}
       with:
         token: ${{ inputs.token }}
